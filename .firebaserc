@@ -1,7 +1,6 @@
 {
   "projects": {
-    "default": "YOUR_FIREBASE_PROJECT_ID",
-    "production": "YOUR_FIREBASE_PROJECT_ID",
-    "staging": "YOUR_STAGING_PROJECT_ID"
+    "default": "notes-app-1a245",
+    "production": "notes-app-1a245"
   }
 }
