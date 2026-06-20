@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { Modal } from '@/components/ui/Modal';
 import { Sparkles } from 'lucide-react';
 
 /**
@@ -14,7 +15,7 @@ import { Sparkles } from 'lucide-react';
  */
 export default function LoginPage() {
   const router = useRouter();
-  const { signInWithEmail, signInWithGoogle } = useAuth();
+  const { signInWithEmail, signInWithGoogle, sendResetEmail, checkEmailExists } = useAuth();
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -25,6 +26,98 @@ export default function LoginPage() {
   
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+
+  // Forgot Password modal state
+  const [isForgotOpen, setIsForgotOpen] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotEmailError, setForgotEmailError] = useState('');
+  const [forgotSuccess, setForgotSuccess] = useState('');
+  const [forgotError, setForgotError] = useState('');
+  const [sending, setSending] = useState(false);
+  const [cooldownTime, setCooldownTime] = useState<number>(0);
+
+  // Run on mount to check if there is an active cooldown from a previous session
+  useEffect(() => {
+    const lastSentStr = localStorage.getItem('lastPasswordResetEmailSent');
+    if (lastSentStr) {
+      const lastSent = parseInt(lastSentStr, 10);
+      const elapsed = Math.floor((Date.now() - lastSent) / 1000);
+      if (elapsed < 60) {
+        setCooldownTime(60 - elapsed);
+      }
+    }
+  }, []);
+
+  // Cooldown countdown interval
+  useEffect(() => {
+    if (cooldownTime <= 0) return;
+    const interval = setInterval(() => {
+      setCooldownTime((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [cooldownTime]);
+
+  const handleOpenForgotModal = () => {
+    setForgotEmail(email);
+    setForgotEmailError('');
+    setForgotSuccess('');
+    setForgotError('');
+    setIsForgotOpen(true);
+  };
+
+  const handleForgotSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setForgotEmailError('');
+    setForgotSuccess('');
+    setForgotError('');
+
+    if (!forgotEmail) {
+      setForgotEmailError('Email address is required');
+      return;
+    } else if (!/\S+@\S+\.\S+/.test(forgotEmail)) {
+      setForgotEmailError('Please enter a valid email format');
+      return;
+    }
+
+    if (cooldownTime > 0) {
+      setForgotError(`Please wait ${cooldownTime} seconds before requesting another email.`);
+      return;
+    }
+
+    setSending(true);
+    try {
+      const exists = await checkEmailExists(forgotEmail);
+      if (!exists) {
+        setForgotError('No account found with this email address.');
+        setSending(false);
+        return;
+      }
+
+      await sendResetEmail(forgotEmail);
+      setForgotSuccess('Password reset email sent! Check your inbox.');
+      localStorage.setItem('lastPasswordResetEmailSent', Date.now().toString());
+      setCooldownTime(60);
+    } catch (err: any) {
+      console.error('Password reset error:', err);
+      if (err.code === 'auth/user-not-found') {
+        setForgotError('No account found with this email address.');
+      } else if (err.code === 'auth/invalid-email') {
+        setForgotError('Invalid email format.');
+      } else if (err.code === 'auth/too-many-requests') {
+        setForgotError('Too many requests. Please try again later.');
+      } else {
+        setForgotError('Failed to send reset email. Please try again.');
+      }
+    } finally {
+      setSending(false);
+    }
+  };
 
   const validate = () => {
     let valid = true;
@@ -141,20 +234,38 @@ export default function LoginPage() {
               required
             />
 
-            <Input
-              id="password-input"
-              label="Password"
-              placeholder="••••••••"
-              type="password"
-              value={password}
-              onChange={(e) => {
-                setPassword(e.target.value);
-                setPasswordError('');
-              }}
-              error={passwordError}
-              disabled={loading || googleLoading}
-              required
-            />
+            <div className="w-full space-y-1.5">
+              <div className="flex justify-between items-center px-1">
+                <label 
+                  htmlFor="password-input" 
+                  className="block text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider pl-1"
+                >
+                  Password
+                </label>
+                <button
+                  id="btn-forgot-password-trigger"
+                  type="button"
+                  onClick={handleOpenForgotModal}
+                  disabled={loading || googleLoading}
+                  className="text-xs text-brand-400 hover:text-brand-300 font-semibold hover:underline transition-colors focus:outline-none cursor-pointer"
+                >
+                  Forgot password?
+                </button>
+              </div>
+              <Input
+                id="password-input"
+                placeholder="••••••••"
+                type="password"
+                value={password}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  setPasswordError('');
+                }}
+                error={passwordError}
+                disabled={loading || googleLoading}
+                required
+              />
+            </div>
 
             <div className="pt-2">
               <Button
@@ -213,6 +324,58 @@ export default function LoginPage() {
           </Link>
         </p>
       </motion.div>
+
+      {/* Forgot Password Modal */}
+      <Modal
+        isOpen={isForgotOpen}
+        onClose={() => setIsForgotOpen(false)}
+        title="Reset Password"
+      >
+        <form onSubmit={handleForgotSubmit} className="space-y-4">
+          <p className="text-slate-500 dark:text-slate-400 text-xs leading-relaxed">
+            Enter your email address and we'll send you a link to reset your password.
+          </p>
+
+          {forgotError && (
+            <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-2xl text-xs font-semibold text-center animate-pulse">
+              {forgotError}
+            </div>
+          )}
+
+          {forgotSuccess && (
+            <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-4 py-3 rounded-2xl text-xs font-semibold text-center">
+              {forgotSuccess}
+            </div>
+          )}
+
+          <Input
+            id="forgot-email-input"
+            label="Email Address"
+            placeholder="name@example.com"
+            type="email"
+            value={forgotEmail}
+            onChange={(e) => {
+              setForgotEmail(e.target.value);
+              setForgotEmailError('');
+            }}
+            error={forgotEmailError}
+            disabled={sending}
+            required
+          />
+
+          <div className="pt-2">
+            <Button
+              id="btn-forgot-submit"
+              type="submit"
+              className="w-full py-3 text-sm font-semibold rounded-2xl"
+              isLoading={sending}
+              disabled={cooldownTime > 0}
+            >
+              {cooldownTime > 0 ? `Resend Link in ${cooldownTime}s` : 'Send Reset Link'}
+            </Button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 }

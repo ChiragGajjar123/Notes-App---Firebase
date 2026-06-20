@@ -1,5 +1,5 @@
 import { useAuthContext } from '@/context/AuthContext';
-import { signInWithEmail, signUpWithEmail, signInWithGoogle, logOut } from '@/lib/firebase/auth';
+import { signInWithEmail, signUpWithEmail, signInWithGoogle, logOut, sendResetEmail, checkEmailExists } from '@/lib/firebase/auth';
 
 /**
  * Custom hook to retrieve current auth context states and trigger login/logout flows.
@@ -14,6 +14,8 @@ export function useAuth() {
     signInWithEmail,
     signUpWithEmail,
     signInWithGoogle,
-    logOut
+    logOut,
+    sendResetEmail,
+    checkEmailExists
   };
 }

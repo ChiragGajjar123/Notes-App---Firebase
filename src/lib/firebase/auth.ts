@@ -4,6 +4,8 @@ import {
   signInWithPopup, 
   signOut, 
   updateProfile,
+  sendPasswordResetEmail,
+  fetchSignInMethodsForEmail,
   User
 } from 'firebase/auth';
 import { auth, googleProvider } from './config';
@@ -45,4 +47,27 @@ export const signInWithGoogle = async (): Promise<User> => {
  */
 export const logOut = async (): Promise<void> => {
   await signOut(auth);
+};
+
+/**
+ * Send a password reset email
+ */
+export const sendResetEmail = async (email: string): Promise<void> => {
+  await sendPasswordResetEmail(auth, email);
+};
+
+/**
+ * Check if an email is registered
+ */
+export const checkEmailExists = async (email: string): Promise<boolean> => {
+  try {
+    const methods = await fetchSignInMethodsForEmail(auth, email);
+    return methods.length > 0;
+  } catch (err: any) {
+    if (err.code === 'auth/admin-restricted-operation') {
+      // Fallback for production where email enumeration protection is active
+      return true;
+    }
+    throw err;
+  }
 };
