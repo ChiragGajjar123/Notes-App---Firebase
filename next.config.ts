@@ -53,7 +53,6 @@ const withPWA = withPWAInit({
 });
 
 const nextConfig: NextConfig = {
-  output: 'standalone',
   images: {
     unoptimized: true,
   },
