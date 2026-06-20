@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Note } from '@/types/note';
 import { Folder } from '@/types/folder';
 import { useNotes } from '@/hooks/useNotes';
+import { useRouter } from 'next/navigation';
 import { Tooltip } from '../ui/Tooltip';
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
@@ -46,8 +47,10 @@ export function NoteActions({ note }: NoteActionsProps) {
     deleteNotePermanently,
     allTags
   } = useNotes();
-
+  
+  const router = useRouter();
   const [isCopied, setIsCopied] = useState(false);
+  const [isTrashing, setIsTrashing] = useState(false);
   
   // Menu visibility toggles
   const [showColorPicker, setShowColorPicker] = useState(false);
@@ -106,6 +109,18 @@ export function NoteActions({ note }: NoteActionsProps) {
 
   const handleToggleShare = async () => {
     await editNote(note.id, { isPublic: !note.isPublic });
+  };
+
+  const handleTrash = async () => {
+    if (isTrashing) return;
+    setIsTrashing(true);
+    try {
+      await trashNote(note.id);
+      router.push('/notes');
+    } catch (err) {
+      console.error('Failed to trash note:', err);
+      setIsTrashing(false);
+    }
   };
 
   const handleCopyLink = () => {
@@ -386,8 +401,9 @@ export function NoteActions({ note }: NoteActionsProps) {
           </Button>
         ) : (
           <button
-            onClick={() => trashNote(note.id)}
-            className="p-2 hover:bg-red-50 dark:hover:bg-red-950/20 text-slate-400 hover:text-red-500 rounded-xl transition-colors cursor-pointer"
+            onClick={handleTrash}
+            disabled={isTrashing}
+            className="p-2 hover:bg-red-50 dark:hover:bg-red-950/20 text-slate-400 hover:text-red-500 rounded-xl transition-colors cursor-pointer disabled:opacity-50 disabled:pointer-events-none"
             title="Move note to trash"
           >
             <Trash2 size={18} />

@@ -58,41 +58,76 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const [editingFolder, setEditingFolder] = useState<{ id: string; name: string; color: string } | null>(null);
   const [isShortcutModalOpen, setIsShortcutModalOpen] = useState(false);
 
+  const [isCreatingFolder, setIsCreatingFolder] = useState(false);
+  const [isEditingFolder, setIsEditingFolder] = useState(false);
+  const [isDeletingFolder, setIsDeletingFolder] = useState(false);
+  const [isCreatingNote, setIsCreatingNote] = useState(false);
+
   const colorsList = ['#8b5cf6', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#ec4899', '#64748b'];
 
   const handleCreateFolder = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newFolderName.trim()) return;
+    if (!newFolderName.trim() || isCreatingFolder) return;
     
-    await addFolder(newFolderName.trim(), newFolderColor);
-    setNewFolderName('');
-    setIsNewFolderOpen(false);
+    setIsCreatingFolder(true);
+    try {
+      await addFolder(newFolderName.trim(), newFolderColor);
+      setNewFolderName('');
+      setIsNewFolderOpen(false);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsCreatingFolder(false);
+    }
   };
 
   const handleEditFolderSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!editingFolder || !editingFolder.name.trim()) return;
+    if (!editingFolder || !editingFolder.name.trim() || isEditingFolder) return;
     
-    await editFolder(editingFolder.id, editingFolder.name.trim(), editingFolder.color);
-    setEditingFolder(null);
+    setIsEditingFolder(true);
+    try {
+      await editFolder(editingFolder.id, editingFolder.name.trim(), editingFolder.color);
+      setEditingFolder(null);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsEditingFolder(false);
+    }
   };
 
   const handleDeleteFolder = async (folderId: string) => {
+    if (isDeletingFolder) return;
     if (confirm("Are you sure you want to delete this folder? All notes inside will be moved to 'Unassigned'.")) {
-      await removeFolder(folderId);
-      if (editingFolder?.id === folderId) setEditingFolder(null);
+      setIsDeletingFolder(true);
+      try {
+        await removeFolder(folderId);
+        setEditingFolder(null); // Ensure modal closes after delete
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setIsDeletingFolder(false);
+      }
     }
   };
 
   const handleAddNewNote = async () => {
-    await addNote({
-      title: 'New Note',
-      content: '<p></p>',
-      plainText: '',
-      color: '#fbfbfb',
-      tags: [],
-    });
-    onClose();
+    if (isCreatingNote) return;
+    setIsCreatingNote(true);
+    try {
+      await addNote({
+        title: 'New Note',
+        content: '<p></p>',
+        plainText: '',
+        color: '#fbfbfb',
+        tags: [],
+      });
+      onClose();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsCreatingNote(false);
+    }
   };
 
   return (
@@ -141,6 +176,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           <Button
             id="btn-sidebar-add-note"
             onClick={handleAddNewNote}
+            isLoading={isCreatingNote}
             className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl cursor-pointer"
           >
             <Plus size={18} />
@@ -400,8 +436,8 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           </div>
 
           <div className="flex items-center justify-end gap-2 pt-2">
-            <Button type="button" variant="ghost" onClick={() => setIsNewFolderOpen(false)}>Cancel</Button>
-            <Button type="submit">Create Folder</Button>
+            <Button type="button" variant="ghost" onClick={() => setIsNewFolderOpen(false)} disabled={isCreatingFolder}>Cancel</Button>
+            <Button type="submit" isLoading={isCreatingFolder}>Create Folder</Button>
           </div>
         </form>
       </Modal>
@@ -444,6 +480,8 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 type="button" 
                 variant="danger" 
                 onClick={() => handleDeleteFolder(editingFolder.id)}
+                isLoading={isDeletingFolder}
+                disabled={isEditingFolder}
                 className="gap-1.5"
               >
                 <Trash2 size={16} />
@@ -451,8 +489,8 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               </Button>
 
               <div className="flex gap-2">
-                <Button type="button" variant="ghost" onClick={() => setEditingFolder(null)}>Cancel</Button>
-                <Button type="submit">Save Changes</Button>
+                <Button type="button" variant="ghost" onClick={() => setEditingFolder(null)} disabled={isEditingFolder || isDeletingFolder}>Cancel</Button>
+                <Button type="submit" isLoading={isEditingFolder} disabled={isDeletingFolder}>Save Changes</Button>
               </div>
             </div>
           </form>

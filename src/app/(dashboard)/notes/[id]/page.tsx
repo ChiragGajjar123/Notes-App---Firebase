@@ -20,20 +20,29 @@ interface PageProps {
 export default function NoteDetailPage({ params }: PageProps) {
   const { id } = use(params);
   const router = useRouter();
-  const { notes, editNote, restoreNote, deleteNotePermanently } = useNotes();
+  const { rawNotes, editNote, restoreNote, deleteNotePermanently } = useNotes();
   
+  const [isRestoring, setIsRestoring] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [title, setTitle] = useState('');
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving'>('saved');
   const titleSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const latestTitleRef = useRef(title);
+
+  // Keep latestTitleRef updated with the current title state
+  useEffect(() => {
+    latestTitleRef.current = title;
+  }, [title]);
 
   const activeNote = React.useMemo(() => {
-    return notes.find(n => n.id === id) || null;
-  }, [notes, id]);
+    return rawNotes.find(n => n.id === id) || null;
+  }, [rawNotes, id]);
 
   // Synchronize title state when note changes
   useEffect(() => {
     if (activeNote) {
       setTitle(activeNote.title);
+      latestTitleRef.current = activeNote.title;
     }
   }, [activeNote?.id]);
 
@@ -44,8 +53,8 @@ export default function NoteDetailPage({ params }: PageProps) {
       titleSaveTimeoutRef.current = null;
     }
     
-    if (activeNote && title !== activeNote.title) {
-      editNote(activeNote.id, { title: title.trim() || 'Untitled Note' });
+    if (activeNote && latestTitleRef.current !== activeNote.title) {
+      editNote(activeNote.id, { title: latestTitleRef.current.trim() || 'Untitled Note' });
     }
   };
 
@@ -53,7 +62,7 @@ export default function NoteDetailPage({ params }: PageProps) {
     return () => {
       flushTitleSaveInstant();
     };
-  }, [activeNote?.id, title]);
+  }, [activeNote?.id]);
 
   if (!activeNote) {
     return (
@@ -84,8 +93,13 @@ export default function NoteDetailPage({ params }: PageProps) {
     }
 
     titleSaveTimeoutRef.current = setTimeout(async () => {
-      await editNote(activeNote.id, { title: newTitle.trim() || 'Untitled Note' });
-      setSaveStatus('saved');
+      try {
+        await editNote(activeNote.id, { title: newTitle.trim() || 'Untitled Note' });
+        setSaveStatus('saved');
+      } catch (err) {
+        console.error('Failed to autosave title:', err);
+        setSaveStatus('saved'); // or handle offline/error, but don't leave it stuck in saving
+      }
     }, 500);
   };
 
@@ -94,13 +108,28 @@ export default function NoteDetailPage({ params }: PageProps) {
   };
 
   const handleRestore = async () => {
-    await restoreNote(activeNote.id);
+    if (!activeNote || isRestoring) return;
+    setIsRestoring(true);
+    try {
+      await restoreNote(activeNote.id);
+    } catch (err) {
+      console.error('Failed to restore note:', err);
+    } finally {
+      setIsRestoring(false);
+    }
   };
 
   const handlePermanentDelete = async () => {
+    if (!activeNote || isDeleting) return;
     if (confirm("Are you sure you want to permanently delete this note? This action is irreversible.")) {
-      await deleteNotePermanently(activeNote.id);
-      router.push('/notes');
+      setIsDeleting(true);
+      try {
+        await deleteNotePermanently(activeNote.id);
+        router.push('/notes');
+      } catch (err) {
+        console.error('Failed to permanently delete note:', err);
+        setIsDeleting(false);
+      }
     }
   };
 
@@ -132,11 +161,24 @@ export default function NoteDetailPage({ params }: PageProps) {
           </div>
           
           <div className="flex items-center gap-2 flex-shrink-0">
-            <Button size="sm" variant="secondary" onClick={handleRestore} className="text-emerald-600 dark:text-emerald-400">
+            <Button 
+              size="sm" 
+              variant="secondary" 
+              onClick={handleRestore} 
+              isLoading={isRestoring} 
+              disabled={isDeleting}
+              className="text-emerald-600 dark:text-emerald-400"
+            >
               <RotateCcw size={14} className="mr-1.5" />
               Restore
             </Button>
-            <Button size="sm" variant="danger" onClick={handlePermanentDelete}>
+            <Button 
+              size="sm" 
+              variant="danger" 
+              onClick={handlePermanentDelete} 
+              isLoading={isDeleting} 
+              disabled={isRestoring}
+            >
               <Trash2 size={14} className="mr-1.5" />
               Hard Delete
             </Button>

@@ -3,6 +3,8 @@ import './globals.css';
 import { AuthProvider } from '@/context/AuthContext';
 import { ThemeProvider } from '@/context/ThemeContext';
 import { NotesProvider } from '@/context/NotesContext';
+import { cookies } from 'next/headers';
+import { fetchServerNotes, fetchServerFolders } from '@/lib/firebase/firestore-ssr';
 
 export const metadata: Metadata = {
   title: 'Aether Notes — Premium Rich Notes',
@@ -26,11 +28,17 @@ export const viewport: Viewport = {
   userScalable: false,
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const cookieStore = await cookies();
+  const token = cookieStore.get('__session')?.value || '';
+
+  const initialNotes = token ? await fetchServerNotes(token) : [];
+  const initialFolders = token ? await fetchServerFolders(token) : [];
+
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -45,7 +53,7 @@ export default function RootLayout({
       <body className="antialiased">
         <AuthProvider>
           <ThemeProvider>
-            <NotesProvider>
+            <NotesProvider initialNotes={initialNotes} initialFolders={initialFolders}>
               {children}
             </NotesProvider>
           </ThemeProvider>

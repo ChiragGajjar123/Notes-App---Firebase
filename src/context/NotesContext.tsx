@@ -21,6 +21,7 @@ export type SortOption = 'updatedAt' | 'createdAt' | 'title' | 'wordCount';
 
 interface NotesContextType {
   notes: Note[];
+  rawNotes: Note[];
   folders: Folder[];
   activeNote: Note | null;
   setActiveNoteId: (id: string | null) => void;
@@ -54,10 +55,16 @@ interface NotesContextType {
 
 const NotesContext = createContext<NotesContextType | undefined>(undefined);
 
-export const NotesProvider = ({ children }: { children: React.ReactNode }) => {
-  const { user } = useAuthContext();
-  const [rawNotes, setRawNotes] = useState<Note[]>([]);
-  const [folders, setFolders] = useState<Folder[]>([]);
+interface NotesProviderProps {
+  children: React.ReactNode;
+  initialNotes?: Note[];
+  initialFolders?: Folder[];
+}
+
+export const NotesProvider = ({ children, initialNotes = [], initialFolders = [] }: NotesProviderProps) => {
+  const { user, loading: authLoading } = useAuthContext();
+  const [rawNotes, setRawNotes] = useState<Note[]>(initialNotes);
+  const [folders, setFolders] = useState<Folder[]>(initialFolders);
   const [activeNoteId, setActiveNoteId] = useState<string | null>(null);
   
   const [activeFolderId, setActiveFolderId] = useState<string | null>(null);
@@ -94,6 +101,8 @@ export const NotesProvider = ({ children }: { children: React.ReactNode }) => {
 
   // Subscribe to Firebase snapshot updates
   useEffect(() => {
+    if (authLoading) return; // Keep SSR initial data until auth resolves
+
     if (!user) {
       setRawNotes([]);
       setFolders([]);
@@ -113,7 +122,7 @@ export const NotesProvider = ({ children }: { children: React.ReactNode }) => {
       unsubNotes();
       unsubFolders();
     };
-  }, [user]);
+  }, [user, authLoading]);
 
   // Expose currently focused active note
   const activeNote = useMemo(() => {
@@ -256,6 +265,7 @@ export const NotesProvider = ({ children }: { children: React.ReactNode }) => {
     <NotesContext.Provider
       value={{
         notes,
+        rawNotes,
         folders,
         activeNote,
         setActiveNoteId,

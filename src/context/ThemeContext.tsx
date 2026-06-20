@@ -18,7 +18,6 @@ const ThemeContext = createContext<ThemeContextType>({
 
 export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
   const [theme, setTheme] = useState<Theme>('light');
-  const [mounted, setMounted] = useState(false);
 
   // Apply theme class to <html> and cache in localStorage
   const applyTheme = (t: Theme) => {
@@ -32,30 +31,15 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   useEffect(() => {
-    const init = async () => {
-      // 1. Apply localStorage immediately to avoid flash
-      const cached = localStorage.getItem('theme') as Theme | null;
-      const systemPref = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-      const initial = cached ?? systemPref;
-      setTheme(initial);
-      applyTheme(initial);
+    // 1. Apply localStorage or system default theme immediately to avoid flash
+    const cached = localStorage.getItem('theme') as Theme | null;
+    const systemPref = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    const initial = cached ?? systemPref;
+    setTheme(initial);
+    applyTheme(initial);
 
-      // 2. If user is logged in, fetch their Firestore preference and override
-      const user = auth.currentUser;
-      if (user) {
-        const saved = await getUserThemePreference(user.uid);
-        if (saved && saved !== initial) {
-          setTheme(saved);
-          applyTheme(saved);
-        }
-      }
-
-      setMounted(true);
-    };
-
-    // Wait for Firebase Auth to resolve before fetching preference
+    // 2. Wait for Firebase Auth to resolve before fetching and overriding from database
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
-      if (!mounted) return; // Already initialised, just re-sync on login
       if (user) {
         const saved = await getUserThemePreference(user.uid);
         if (saved) {
@@ -65,9 +49,7 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
       }
     });
 
-    init();
     return () => unsubscribe();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const toggleTheme = async () => {
