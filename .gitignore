@@ -19,7 +19,7 @@ ui-debug.log
 # Firebase Emulator persisted data (local dev only)
 .emulator-data/
 
-# Local environment variables
+# Local environment variables (never commit real secrets)
 .env.local
 .env.development.local
 .env.test.local

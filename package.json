@@ -8,13 +8,15 @@
     "build": "next build --webpack",
     "start": "next start",
     "lint": "next lint",
-    "deploy": "npm run build && firebase deploy",
-    "deploy:hosting": "npm run build && firebase deploy --only hosting",
-    "deploy:rules": "firebase deploy --only firestore:rules",
+    "predeploy:check": "node scripts/check-env.js",
+    "deploy": "npm run predeploy:check && npm run build && firebase deploy",
+    "deploy:hosting": "npm run predeploy:check && npm run build && firebase deploy --only hosting",
+    "deploy:rules": "firebase deploy --only firestore:rules,storage",
     "deploy:indexes": "firebase deploy --only firestore:indexes",
     "deploy:functions": "firebase deploy --only functions",
     "emulators": "firebase emulators:start --only auth,firestore,storage --project demo-notes-app --import .emulator-data --export-on-exit .emulator-data",
-    "emulators:fresh": "firebase emulators:start --only auth,firestore,storage --project demo-notes-app"
+    "emulators:fresh": "firebase emulators:start --only auth,firestore,storage --project demo-notes-app",
+    "emulators:ui": "start http://127.0.0.1:4000"
   },
   "dependencies": {
     "@ducanh2912/next-pwa": "^10.2.9",
