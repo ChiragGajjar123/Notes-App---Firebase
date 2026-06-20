@@ -1,0 +1,52 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper: Checks if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Helper: Checks if user owns the document
+    function isOwner(resourceData) {
+      return isAuthenticated() && resourceData.userId == request.auth.uid;
+    }
+
+    // Notes collection rules
+    match /notes/{noteId} {
+      // Allow read if the user is the owner, OR if the note has been explicitly shared publicly (isPublic == true)
+      allow read: if (resource != null && resource.data.isPublic == true) || isOwner(resource.data);
+      
+      // Allow creation if the owner UID matches the authenticated user UID and required fields are present
+      allow create: if isAuthenticated() 
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.title is string
+        && request.resource.data.content is string
+        && request.resource.data.isDeleted == false;
+      
+      // Allow updates if the user is the owner and doesn't change the owner UID
+      allow update: if isOwner(resource.data) 
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.title is string;
+      
+      // Allow deletes only for the owner
+      allow delete: if isOwner(resource.data);
+    }
+    
+    // Folders collection rules
+    match /folders/{folderId} {
+      // Create, update, read, and delete only if the folder belongs to the logged-in user
+      allow read: if isOwner(resource.data);
+      
+      allow create: if isAuthenticated() 
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.name is string;
+        
+      allow update: if isOwner(resource.data) 
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.name is string;
+        
+      allow delete: if isOwner(resource.data);
+    }
+  }
+}

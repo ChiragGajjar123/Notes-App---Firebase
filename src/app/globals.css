@@ -1,0 +1,290 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Outfit', sans-serif;
+  
+  /* Premium Lavender/Purple Brand Scale */
+  --color-brand-50: #f5f3ff;
+  --color-brand-100: #ede9fe;
+  --color-brand-200: #ddd6fe;
+  --color-brand-300: #c084fc;
+  --color-brand-500: #8b5cf6;
+  --color-brand-600: #7c3aed;
+  --color-brand-700: #6d28d9;
+  --color-brand-800: #5b21b6;
+  --color-brand-900: #4c1d95;
+  --color-brand-950: #2e1065;
+  
+  /* Smooth UI Animations */
+  --transition-premium: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-fast: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Custom Base resets */
+@layer base {
+  body {
+    @apply bg-slate-50 text-slate-900 font-sans antialiased transition-colors duration-300;
+  }
+  
+  body::selection {
+    @apply bg-brand-100 text-brand-900;
+  }
+  
+  .dark body {
+    @apply bg-slate-950 text-slate-100;
+  }
+  
+  .dark body::selection {
+    @apply bg-brand-900 text-brand-100;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display font-bold tracking-tight;
+  }
+}
+
+/* Scrollbar Customization */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-slate-200/80 rounded-full transition-colors;
+}
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-slate-300;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  @apply bg-slate-800/80 rounded-full transition-colors;
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  @apply bg-slate-700;
+}
+
+/* Glassmorphism Styles */
+.glass-panel {
+  @apply bg-white/70 border border-white/20 backdrop-blur-md shadow-sm;
+}
+
+.dark .glass-panel {
+  @apply bg-slate-900/60 border border-slate-800/40 backdrop-blur-md shadow-lg;
+}
+
+.glass-card {
+  @apply bg-white/80 border border-slate-100 backdrop-blur-sm shadow-md transition-all duration-300;
+}
+.glass-card:hover {
+  @apply shadow-xl;
+}
+
+.dark .glass-card {
+  @apply bg-slate-900/80 border border-slate-800/50 backdrop-blur-sm shadow-lg transition-all duration-300;
+}
+.dark .glass-card:hover {
+  @apply shadow-2xl border-slate-700/60;
+}
+
+/* --- Tiptap Editor & ProseMirror Styling --- */
+.ProseMirror {
+  @apply min-h-[400px] outline-none text-slate-800 leading-relaxed font-sans text-base;
+}
+.dark .ProseMirror {
+  @apply text-slate-200;
+}
+
+.ProseMirror p {
+  @apply mb-4;
+}
+
+.ProseMirror h1 {
+  @apply text-3xl font-display font-bold mt-6 mb-4 text-slate-900 dark:text-white leading-tight;
+}
+
+.ProseMirror h2 {
+  @apply text-2xl font-display font-bold mt-5 mb-3 text-slate-900 dark:text-white leading-tight;
+}
+
+.ProseMirror h3 {
+  @apply text-xl font-display font-bold mt-4 mb-2 text-slate-900 dark:text-white leading-tight;
+}
+
+.ProseMirror ul {
+  @apply list-disc pl-6 mb-4 space-y-1;
+}
+
+.ProseMirror ol {
+  @apply list-decimal pl-6 mb-4 space-y-1;
+}
+
+.ProseMirror blockquote {
+  @apply border-l-4 border-brand-500 bg-brand-50/50 px-4 py-2 italic my-4 rounded-r-md text-slate-700;
+}
+.dark .ProseMirror blockquote {
+  @apply bg-brand-950/20 text-slate-300;
+}
+
+/* Tiptap Checklists / Task List */
+.ProseMirror ul[data-type="taskList"] {
+  @apply list-none pl-0 space-y-2 my-4;
+}
+
+.ProseMirror li[data-type="taskItem"] {
+  @apply flex items-start gap-3;
+}
+
+.ProseMirror li[data-type="taskItem"] > label {
+  @apply select-none pt-1 cursor-pointer flex items-center justify-center;
+}
+
+.ProseMirror li[data-type="taskItem"] > label input[type="checkbox"] {
+  @apply h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500 cursor-pointer accent-brand-500;
+}
+
+.ProseMirror li[data-type="taskItem"] > div {
+  @apply flex-1;
+}
+
+.ProseMirror li[data-type="taskItem"][data-checked="true"] > div {
+  @apply line-through text-slate-400;
+}
+.dark .ProseMirror li[data-type="taskItem"][data-checked="true"] > div {
+  @apply text-slate-500;
+}
+
+/* Image Embeds in Editor */
+.ProseMirror img {
+  @apply rounded-xl shadow-md border border-slate-100 max-h-[350px] object-cover mx-auto my-6 transition-transform duration-300;
+}
+.ProseMirror img:hover {
+  @apply scale-[1.01];
+}
+
+/* Editor Placeholder styling */
+.ProseMirror p.is-editor-empty:first-child::before {
+  @apply text-slate-400 content-[attr(data-placeholder)] float-left h-0 pointer-events-none italic;
+}
+.dark .ProseMirror p.is-editor-empty:first-child::before {
+  @apply text-slate-500;
+}
+
+/* Syntax Highlighting and Code Block styling */
+.ProseMirror pre {
+  @apply bg-slate-900 text-slate-100 p-4 rounded-xl font-mono text-sm overflow-x-auto border border-slate-800 shadow-inner my-6 relative;
+}
+
+.ProseMirror code {
+  @apply font-mono text-sm bg-slate-100 dark:bg-slate-800 text-pink-600 dark:text-pink-400 px-1.5 py-0.5 rounded font-medium;
+}
+
+.ProseMirror pre code {
+  @apply bg-transparent text-slate-100 p-0 rounded-none text-sm leading-normal;
+}
+
+/* lowlight code block syntax theme (Atom One Dark style) */
+.hljs-comment,
+.hljs-quote {
+  @apply text-slate-500 italic;
+}
+
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-addition {
+  @apply text-purple-400 font-semibold;
+}
+
+.hljs-number,
+.hljs-string,
+.hljs-meta,
+.hljs-regexp,
+.hljs-variable,
+.hljs-template-variable {
+  @apply text-emerald-400;
+}
+
+.hljs-title,
+.hljs-section,
+.hljs-params,
+.hljs-function,
+.hljs-class {
+  @apply text-blue-400;
+}
+
+.hljs-symbol,
+.hljs-bullet,
+.hljs-subst,
+.hljs-type,
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-selector-id,
+.hljs-selector-class {
+  @apply text-amber-400;
+}
+
+.hljs-emphasis {
+  @apply italic;
+}
+
+.hljs-strong {
+  @apply font-bold;
+}
+
+/* Horizontal line rules */
+.ProseMirror hr {
+  @apply border-t-2 border-slate-200 my-8;
+}
+.dark .ProseMirror hr {
+  @apply border-slate-800;
+}
+
+/* Bubble menu buttons styles helper */
+.bubble-menu-btn {
+  @apply p-1.5 rounded transition-colors text-slate-600;
+}
+.bubble-menu-btn:hover {
+  @apply bg-slate-100;
+}
+.dark .bubble-menu-btn {
+  @apply text-slate-400;
+}
+.dark .bubble-menu-btn:hover {
+  @apply bg-slate-800;
+}
+
+.bubble-menu-btn.is-active {
+  @apply bg-brand-100 text-brand-700 font-semibold;
+}
+.dark .bubble-menu-btn.is-active {
+  @apply bg-brand-900/60 text-brand-200;
+}
+
+/* --- Print CSS formatting for PDF Exports --- */
+@media print {
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  
+  .no-print {
+    display: none !important;
+  }
+  
+  .print-page {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 2cm !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  .ProseMirror {
+    min-height: 0 !important;
+  }
+}
