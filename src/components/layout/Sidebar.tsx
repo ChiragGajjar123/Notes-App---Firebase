@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNotes } from '@/hooks/useNotes';
 import { useThemeContext } from '@/context/ThemeContext';
+import { useRouter } from 'next/navigation';
 import { Button } from '../ui/Button';
 import { Modal } from '../ui/Modal';
 import { 
@@ -36,6 +37,7 @@ interface SidebarProps {
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const { user, logOut } = useAuth();
   const { theme, toggleTheme } = useThemeContext();
+  const router = useRouter();
   
   const { 
     notes,
@@ -102,10 +104,10 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       setIsDeletingFolder(true);
       try {
         await removeFolder(folderId);
-        setEditingFolder(null); // Ensure modal closes after delete
       } catch (err) {
         console.error(err);
       } finally {
+        setEditingFolder(null);
         setIsDeletingFolder(false);
       }
     }
@@ -127,6 +129,15 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       console.error(err);
     } finally {
       setIsCreatingNote(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logOut();
+      router.push('/login');
+    } catch (err) {
+      console.error('Failed to log out:', err);
     }
   };
 
@@ -360,8 +371,8 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
               <button
                 id="btn-sidebar-logout"
-                onClick={logOut}
-                className="p-2 hover:bg-rose-50 dark:hover:bg-rose-950/20 text-slate-450 hover:text-rose-500 rounded-xl transition-colors cursor-pointer"
+                onClick={handleLogout}
+                className="p-2 hover:bg-rose-50 dark:hover:bg-rose-950/20 text-slate-455 hover:text-rose-500 rounded-xl transition-colors cursor-pointer"
                 title="Sign Out"
               >
                 <LogOut size={18} />

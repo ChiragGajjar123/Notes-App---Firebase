@@ -14,7 +14,7 @@ import {
   increment,
   Timestamp
 } from 'firebase/firestore';
-import { db } from './config';
+import { db, auth } from './config';
 import { Note } from '@/types/note';
 import { Folder } from '@/types/folder';
 
@@ -280,8 +280,17 @@ export const deleteFolder = async (folderId: string): Promise<void> => {
   const folderRef = doc(db, 'folders', folderId);
   await deleteDoc(folderRef);
 
-  // Dissociate notes currently residing in this folder
-  const q = query(notesCol, where('folderId', '==', folderId));
+  const userId = auth.currentUser?.uid;
+  if (!userId) {
+    throw new Error("User must be authenticated to delete a folder");
+  }
+
+  // Dissociate notes currently residing in this folder (scoped to owner to avoid security rule violations)
+  const q = query(
+    notesCol, 
+    where('userId', '==', userId),
+    where('folderId', '==', folderId)
+  );
   const snap = await getDocs(q);
   const batch = writeBatch(db);
   snap.forEach((noteDoc) => {
