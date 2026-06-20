@@ -109,13 +109,14 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       <aside
         className={cn(
           // Mobile Bottom Sheet styling
-          "fixed inset-x-0 bottom-0 z-40 max-h-[85vh] overflow-y-auto bg-white dark:bg-slate-900 border-t border-slate-200/80 dark:border-slate-800 rounded-t-[32px] p-6 shadow-2xl transition-transform duration-350 ease-out flex flex-col justify-between",
+          "fixed inset-x-0 bottom-0 z-40 max-h-[85vh] bg-white dark:bg-slate-900 border-t border-slate-200/80 dark:border-slate-800 rounded-t-[32px] shadow-2xl transition-transform duration-350 ease-out flex flex-col",
           isOpen ? "translate-y-0" : "translate-y-full",
-          // Desktop sidebar styling
-          "md:translate-y-0 md:static md:w-72 md:h-screen md:border-t-0 md:border-r md:rounded-none md:p-6 md:shadow-none"
+          // Desktop sidebar — full height, fixed layout
+          "md:translate-y-0 md:static md:w-72 md:h-screen md:max-h-screen md:border-t-0 md:border-r md:rounded-none md:shadow-none"
         )}
       >
-        <div className="space-y-6">
+        {/* ── FIXED TOP: Logo + New Note ── */}
+        <div className="flex-shrink-0 px-6 pt-6 pb-4 space-y-4">
           {/* Header & Logo */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
@@ -126,9 +127,9 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 Aether Notes
               </span>
             </div>
-            
+
             {/* Mobile Close Button */}
-            <button 
+            <button
               onClick={onClose}
               className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-400 md:hidden cursor-pointer"
             >
@@ -137,15 +138,18 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           </div>
 
           {/* Quick Note Add */}
-          <Button 
+          <Button
             id="btn-sidebar-add-note"
-            onClick={handleAddNewNote} 
+            onClick={handleAddNewNote}
             className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl cursor-pointer"
           >
             <Plus size={18} />
             New Note
           </Button>
+        </div>
 
+        {/* ── SCROLLABLE MIDDLE: Nav + Folders + Tags ── */}
+        <div className="flex-1 overflow-y-auto px-6 pb-2 space-y-6 min-h-0">
           {/* Core Views navigation */}
           <div className="space-y-1">
             <button
@@ -207,7 +211,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           </div>
 
           {/* Folders Section */}
-          <div className="space-y-2 pt-2">
+          <div className="space-y-2">
             <div className="flex items-center justify-between px-2">
               <span className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider pl-1">
                 Folders
@@ -222,9 +226,9 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               </button>
             </div>
 
-            <div className="space-y-1 max-h-[160px] overflow-y-auto pr-1">
+            <div className="space-y-1">
               {folders.map((folder) => (
-                <div 
+                <div
                   key={folder.id}
                   className={cn(
                     "group flex items-center justify-between px-3 py-1.5 rounded-xl text-sm font-semibold transition-all cursor-pointer",
@@ -233,7 +237,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                       : "text-slate-650 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800/50"
                   )}
                 >
-                  <div 
+                  <div
                     className="flex items-center gap-2.5 flex-1 min-w-0"
                     onClick={() => { setActiveFolderId(folder.id); setSelectedTag(null); onClose(); }}
                   >
@@ -262,13 +266,13 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           </div>
 
           {/* Tags Section */}
-          <div className="space-y-2 pt-2">
+          <div className="space-y-2">
             <div className="px-2">
               <span className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider pl-1">
                 Tags
               </span>
             </div>
-            <div className="flex flex-wrap gap-1.5 px-2 max-h-[120px] overflow-y-auto">
+            <div className="flex flex-wrap gap-1.5 px-2">
               {allTags.map((tag) => (
                 <button
                   key={tag}
@@ -297,16 +301,16 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           </div>
         </div>
 
-        {/* User Info & Settings footer */}
-        <div className="border-t border-slate-250/20 dark:border-slate-850/50 pt-4 mt-6 space-y-4">
+        {/* ── FIXED BOTTOM: User info + theme toggle ── */}
+        <div className="flex-shrink-0 px-6 pb-6 pt-4 border-t border-slate-200/60 dark:border-slate-800/60 space-y-3 bg-white dark:bg-slate-900">
           {/* Active User Account Block */}
           {user && (
-            <div className="flex items-center justify-between px-2">
+            <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <img 
-                  src={user.photoURL || `https://api.dicebear.com/7.x/initials/svg?seed=${user.displayName || 'U'}`} 
-                  alt={user.displayName || 'User'} 
-                  className="h-10 w-10 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-800 shadow-inner"
+                <img
+                  src={user.photoURL || `https://api.dicebear.com/7.x/initials/svg?seed=${user.displayName || 'U'}`}
+                  alt={user.displayName || 'User'}
+                  className="h-10 w-10 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-inner"
                 />
                 <div className="text-left">
                   <h4 className="text-sm font-bold text-slate-900 dark:text-white truncate max-w-[130px]">
@@ -317,8 +321,8 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                   </p>
                 </div>
               </div>
-              
-              <button 
+
+              <button
                 id="btn-sidebar-logout"
                 onClick={logOut}
                 className="p-2 hover:bg-rose-50 dark:hover:bg-rose-950/20 text-slate-450 hover:text-rose-500 rounded-xl transition-colors cursor-pointer"
@@ -330,7 +334,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           )}
 
           {/* Quick Settings Bar */}
-          <div className="flex items-center justify-between px-2 pt-1">
+          <div className="flex items-center justify-between">
             <button
               id="btn-sidebar-theme-toggle"
               onClick={toggleTheme}

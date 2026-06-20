@@ -1,6 +1,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap');
 @import "tailwindcss";
 
+/* Enable class-based dark mode for Tailwind v4 — responds to .dark on <html> */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-display: 'Outfit', sans-serif;
@@ -79,17 +82,27 @@
 }
 
 .glass-card {
-  @apply bg-white/80 border border-slate-100 backdrop-blur-sm shadow-md transition-all duration-300;
+  background-color: rgb(255 255 255 / 0.9);
+  border: 1px solid rgb(226 232 240 / 0.8);
+  backdrop-filter: blur(4px);
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .glass-card:hover {
-  @apply shadow-xl;
+  box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.08);
 }
 
 .dark .glass-card {
-  @apply bg-slate-900/80 border border-slate-800/50 backdrop-blur-sm shadow-lg transition-all duration-300;
+  background-color: rgb(30 41 59 / 0.7);
+  border: 1px solid rgb(51 65 85 / 0.6);
+  backdrop-filter: blur(4px);
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.3), 0 2px 4px -2px rgb(0 0 0 / 0.2);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .dark .glass-card:hover {
-  @apply shadow-2xl border-slate-700/60;
+  background-color: rgb(30 41 59 / 0.85);
+  border-color: rgb(71 85 105 / 0.7);
+  box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.4);
 }
 
 /* --- Tiptap Editor & ProseMirror Styling --- */

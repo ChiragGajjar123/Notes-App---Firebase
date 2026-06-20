@@ -87,6 +87,7 @@ export function NoteEditor({ note, onSave }: NoteEditorProps) {
 
   // Initialize Tiptap Editor
   const editor = useEditor({
+    immediatelyRender: false, // Prevents SSR hydration mismatch in Next.js
     extensions: [
       StarterKit.configure({
         codeBlock: false, // Disabled to use CodeBlockLowlight instead

@@ -16,6 +16,9 @@ build/
 firebase-debug.log
 ui-debug.log
 
+# Firebase Emulator persisted data (local dev only)
+.emulator-data/
+
 # Local environment variables
 .env.local
 .env.development.local

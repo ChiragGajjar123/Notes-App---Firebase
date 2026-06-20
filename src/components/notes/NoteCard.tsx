@@ -48,14 +48,12 @@ export function NoteCard({ note }: NoteCardProps) {
     }
   };
 
-  // Convert raw background color into a softer tinted background for light/dark modes
+  // Convert raw background color into a tinted overlay — glass-card handles the base bg
   const cardStyle = React.useMemo(() => {
-    const rawColor = note.color || '#fbfbfb';
+    const rawColor = note.color && note.color !== '#fbfbfb' ? note.color : null;
     return {
-      lightBg: rawColor === '#fbfbfb' ? 'bg-white' : '',
-      customStyle: rawColor !== '#fbfbfb' ? {
-        '--note-color': rawColor,
-      } as React.CSSProperties : {}
+      accentColor: rawColor || '#8b5cf6',
+      customStyle: rawColor ? { '--note-color': rawColor } as React.CSSProperties : {},
     };
   }, [note.color]);
 
@@ -63,18 +61,17 @@ export function NoteCard({ note }: NoteCardProps) {
     <div
       onClick={handleCardClick}
       className={cn(
-        "glass-card group flex flex-col justify-between p-5 rounded-2xl h-48 cursor-pointer relative overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-lg active:scale-98",
-        cardStyle.lightBg
+        "glass-card group flex flex-col justify-between p-5 rounded-2xl h-48 cursor-pointer relative overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-xl active:scale-[0.98]",
       )}
       style={{
-        borderLeft: `5px solid ${note.color || '#e2e8f0'}`,
-        ...cardStyle.customStyle
+        borderLeft: `4px solid ${cardStyle.accentColor}`,
+        ...cardStyle.customStyle,
       }}
     >
-      {/* Tinted Background Overlay */}
+      {/* Tinted Background Overlay for custom colors */}
       {note.color && note.color !== '#fbfbfb' && (
-        <div 
-          className="absolute inset-0 opacity-10 dark:opacity-15 pointer-events-none transition-colors"
+        <div
+          className="absolute inset-0 opacity-[0.07] dark:opacity-[0.12] pointer-events-none transition-colors"
           style={{ backgroundColor: note.color }}
         />
       )}

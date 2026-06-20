@@ -12,7 +12,9 @@
     "deploy:hosting": "npm run build && firebase deploy --only hosting",
     "deploy:rules": "firebase deploy --only firestore:rules",
     "deploy:indexes": "firebase deploy --only firestore:indexes",
-    "deploy:functions": "firebase deploy --only functions"
+    "deploy:functions": "firebase deploy --only functions",
+    "emulators": "firebase emulators:start --only auth,firestore,storage --project demo-notes-app --import .emulator-data --export-on-exit .emulator-data",
+    "emulators:fresh": "firebase emulators:start --only auth,firestore,storage --project demo-notes-app"
   },
   "dependencies": {
     "@ducanh2912/next-pwa": "^10.2.9",

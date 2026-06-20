@@ -21,6 +21,39 @@ import { Folder } from '@/types/folder';
 // Collection Helper References
 const notesCol = collection(db, 'notes');
 const foldersCol = collection(db, 'folders');
+const usersCol = collection(db, 'users');
+
+/**
+ * Fetch the saved theme preference for a user from Firestore.
+ * Returns null if no preference has been saved yet.
+ */
+export const getUserThemePreference = async (userId: string): Promise<'light' | 'dark' | null> => {
+  try {
+    const userRef = doc(usersCol, userId);
+    const snap = await getDoc(userRef);
+    if (snap.exists()) {
+      const data = snap.data();
+      return data?.preferences?.theme ?? null;
+    }
+    return null;
+  } catch (error) {
+    console.error('Error reading user theme preference:', error);
+    return null;
+  }
+};
+
+/**
+ * Persist the user's theme preference to Firestore at users/{uid}.preferences.theme.
+ * Uses merge so that other user fields are not overwritten.
+ */
+export const saveUserThemePreference = async (userId: string, theme: 'light' | 'dark'): Promise<void> => {
+  try {
+    const userRef = doc(usersCol, userId);
+    await setDoc(userRef, { preferences: { theme } }, { merge: true });
+  } catch (error) {
+    console.error('Error saving user theme preference:', error);
+  }
+};
 
 /**
  * Increment or decrement noteCount for a folder
