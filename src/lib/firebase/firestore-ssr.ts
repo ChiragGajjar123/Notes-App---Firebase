@@ -31,13 +31,7 @@ function parseFirestoreValue(val: any): any {
   if (val.integerValue !== undefined) return parseInt(val.integerValue, 10);
   if (val.doubleValue !== undefined) return parseFloat(val.doubleValue);
   if (val.timestampValue !== undefined) {
-    const date = new Date(val.timestampValue);
-    return {
-      toMillis: () => date.getTime(),
-      toDate: () => date,
-      seconds: Math.floor(date.getTime() / 1000),
-      nanoseconds: (date.getTime() % 1000) * 1e6
-    };
+    return val.timestampValue;
   }
   if (val.arrayValue !== undefined) {
     const values = val.arrayValue.values || [];

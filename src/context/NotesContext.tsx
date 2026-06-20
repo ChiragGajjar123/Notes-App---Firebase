@@ -194,9 +194,17 @@ export const NotesProvider = ({ children, initialNotes = [], initialFolders = []
       
       const valA = a[sortOption] as any;
       const valB = b[sortOption] as any;
-      const timeA = valA?.toMillis ? valA.toMillis() : 0;
-      const timeB = valB?.toMillis ? valB.toMillis() : 0;
-      return timeB - timeA;
+
+      const getMillis = (val: any) => {
+        if (!val) return 0;
+        if (typeof val.toMillis === 'function') return val.toMillis();
+        if (val.seconds !== undefined) return val.seconds * 1000;
+        if (typeof val === 'string') return new Date(val).getTime();
+        if (val instanceof Date) return val.getTime();
+        return 0;
+      };
+
+      return getMillis(valB) - getMillis(valA);
     });
 
     return filtered;
