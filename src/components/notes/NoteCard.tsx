@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useNotes } from '@/hooks/useNotes';
 import { useSearch } from '@/hooks/useSearch';
@@ -30,8 +30,10 @@ export function NoteCard({ note }: NoteCardProps) {
   const { setActiveNoteId, activeFolderId, restoreNote, deleteNotePermanently } = useNotes();
   const { highlightText } = useSearch();
   const { searchQuery } = useNotes();
+  const [isOpening, setIsOpening] = useState(false);
 
   const handleCardClick = () => {
+    setIsOpening(true);
     setActiveNoteId(note.id);
     router.push(`/notes/${note.id}`);
   };
@@ -59,9 +61,10 @@ export function NoteCard({ note }: NoteCardProps) {
 
   return (
     <div
-      onClick={handleCardClick}
+      onClick={isOpening ? undefined : handleCardClick}
       className={cn(
         "glass-card group flex flex-col justify-between p-5 rounded-2xl h-48 cursor-pointer relative overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-xl active:scale-[0.98]",
+        isOpening && "opacity-80 pointer-events-none active:scale-100 hover:transform-none hover:shadow-md"
       )}
       style={{
         borderLeft: `4px solid ${cardStyle.accentColor}`,
@@ -131,7 +134,15 @@ export function NoteCard({ note }: NoteCardProps) {
           </div>
 
           {/* Action overlays inside trash */}
-          {note.isDeleted ? (
+          {isOpening ? (
+            <span className="flex items-center gap-1 text-[10px] text-brand-500 dark:text-brand-400 font-bold uppercase tracking-wider animate-pulse">
+              <svg className="animate-spin h-3 w-3 text-current" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+              </svg>
+              Opening...
+            </span>
+          ) : note.isDeleted ? (
             <div className="flex items-center gap-1.5">
               <button
                 onClick={handleRestore}

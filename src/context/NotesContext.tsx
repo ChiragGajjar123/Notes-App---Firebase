@@ -24,6 +24,7 @@ interface NotesContextType {
   rawNotes: Note[];
   folders: Folder[];
   activeNote: Note | null;
+  notesLoading: boolean;
   setActiveNoteId: (id: string | null) => void;
   activeFolderId: string | null; // null represents "All Notes", 'favorites' for stars, 'trash' for trash bin
   setActiveFolderId: (id: string | null) => void;
@@ -66,6 +67,7 @@ export const NotesProvider = ({ children, initialNotes = [], initialFolders = []
   const [rawNotes, setRawNotes] = useState<Note[]>(initialNotes);
   const [folders, setFolders] = useState<Folder[]>(initialFolders);
   const [activeNoteId, setActiveNoteId] = useState<string | null>(null);
+  const [notesLoading, setNotesLoading] = useState(initialNotes.length === 0);
   
   const [activeFolderId, setActiveFolderId] = useState<string | null>(null);
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
@@ -107,11 +109,13 @@ export const NotesProvider = ({ children, initialNotes = [], initialFolders = []
       setRawNotes([]);
       setFolders([]);
       setActiveNoteId(null);
+      setNotesLoading(false);
       return;
     }
 
     const unsubNotes = subscribeToNotes(user.uid, (notesList) => {
       setRawNotes(notesList);
+      setNotesLoading(false);
     });
 
     const unsubFolders = subscribeToFolders(user.uid, (foldersList) => {
@@ -289,6 +293,7 @@ export const NotesProvider = ({ children, initialNotes = [], initialFolders = []
         editFolder,
         removeFolder,
         allTags,
+        notesLoading,
       }}
     >
       {children}

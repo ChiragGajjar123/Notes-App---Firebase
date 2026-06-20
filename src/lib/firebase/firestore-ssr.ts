@@ -1,7 +1,15 @@
 import { Note } from '@/types/note';
 import { Folder } from '@/types/folder';
 
-const PROJECT_ID = 'notes-app-1a245';
+const PROJECT_ID = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'notes-app-1a245';
+const USE_EMULATORS = process.env.NEXT_PUBLIC_USE_EMULATORS === 'true';
+
+function getFirestoreBaseUrl(): string {
+  if (USE_EMULATORS) {
+    return `http://localhost:8080/v1/projects/${PROJECT_ID}/databases/(default)/documents`;
+  }
+  return `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents`;
+}
 
 function decodeJwtUid(token: string): string | null {
   try {
@@ -62,7 +70,8 @@ export async function fetchServerNotes(token: string): Promise<Note[]> {
   const userId = decodeJwtUid(token);
   if (!userId) return [];
 
-  const url = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents:runQuery`;
+  const baseUrl = getFirestoreBaseUrl();
+  const url = `${baseUrl}:runQuery`;
   const body = {
     structuredQuery: {
       from: [{ collectionId: 'notes' }],
@@ -112,7 +121,8 @@ export async function fetchServerFolders(token: string): Promise<Folder[]> {
   const userId = decodeJwtUid(token);
   if (!userId) return [];
 
-  const url = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents:runQuery`;
+  const baseUrl = getFirestoreBaseUrl();
+  const url = `${baseUrl}:runQuery`;
   const body = {
     structuredQuery: {
       from: [{ collectionId: 'folders' }],
@@ -159,7 +169,8 @@ export async function fetchServerFolders(token: string): Promise<Folder[]> {
 }
 
 export async function fetchServerNote(token: string, noteId: string): Promise<Note | null> {
-  const url = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/notes/${noteId}`;
+  const baseUrl = getFirestoreBaseUrl();
+  const url = `${baseUrl}/notes/${noteId}`;
   
   try {
     const response = await fetch(url, {
