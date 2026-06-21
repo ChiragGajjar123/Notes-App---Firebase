@@ -9,6 +9,7 @@ import {
   User
 } from 'firebase/auth';
 import { auth, googleProvider } from './config';
+import { serverCheckEmailExists } from '@/app/actions/authActions';
 
 /**
  * Sign in with email and password
@@ -61,13 +62,19 @@ export const sendResetEmail = async (email: string): Promise<void> => {
  */
 export const checkEmailExists = async (email: string): Promise<boolean> => {
   try {
-    const methods = await fetchSignInMethodsForEmail(auth, email);
-    return methods.length > 0;
-  } catch (err: any) {
-    if (err.code === 'auth/admin-restricted-operation') {
-      // Fallback for production where email enumeration protection is active
-      return true;
+    const exists = await serverCheckEmailExists(email);
+    return exists;
+  } catch (serverErr) {
+    console.warn('Server check failed, falling back to client-side check:', serverErr);
+    try {
+      const methods = await fetchSignInMethodsForEmail(auth, email);
+      return methods.length > 0;
+    } catch (err: any) {
+      if (err.code === 'auth/admin-restricted-operation') {
+        // Fallback for production where email enumeration protection is active
+        return true;
+      }
+      throw err;
     }
-    throw err;
   }
 };
